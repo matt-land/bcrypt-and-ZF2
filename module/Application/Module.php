@@ -11,7 +11,8 @@ namespace Application;
 
 use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
-
+use Application\Model\MyAuthAdapter;
+use Zend\ServiceManager\ServiceManager;
 class Module
 {
     public function onBootstrap(MvcEvent $e)
@@ -33,6 +34,20 @@ class Module
                 'namespaces' => array(
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
                 ),
+            ),
+        );
+    }
+
+    public function getServiceConfig()
+    {
+        return array(
+            'factories' => array(
+                'auth' => function($serviceManager) {
+                        /**
+                         * @var $serviceManager ServiceManager
+                         */
+                        return new MyAuthAdapter($serviceManager->get('Request'));
+                    },
             ),
         );
     }
