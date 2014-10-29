@@ -13,9 +13,9 @@ use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Zend\Authentication\AuthenticationServiceInterface;
 use Zend\Authentication\Result;
-class IndexController extends AbstractActionController
+class AuthController extends AbstractActionController
 {
-    public function indexAction()
+    public function inAction()
     {
         /**
          * @var $authAdapter AuthenticationServiceInterface
@@ -28,9 +28,16 @@ class IndexController extends AbstractActionController
         if (! $result->isValid()) {
             $this->redirect('/');
         }
-        // @todo set session key to identify user to our restriced controllers
+        // @todo set session key to identify user to our restricted controllers
 
-        $this->redirect('/accountArea');
+        $this->redirect('/account');
 
+    }
+
+    public function outAction()
+    {
+        // @todo destroy the session identifier token
+
+        $this->redirect('/');
     }
 }

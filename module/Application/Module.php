@@ -43,11 +43,8 @@ class Module
         return array(
             'factories' => array(
                 'auth' => function($serviceManager) {
-                        /**
-                         * @var $serviceManager ServiceManager
-                         */
                         return new MyAuthAdapter($serviceManager->get('Request'));
-                    },
+                },
             ),
         );
     }
