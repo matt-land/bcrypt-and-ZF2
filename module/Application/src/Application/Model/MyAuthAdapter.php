@@ -22,7 +22,7 @@ class MyAuthAdapter implements AuthenticationServiceInterface
     private $userName = false;
     private $userSecret = false;
 
-    private $secret = array(
+    private $userDatabase = array(
         //user1 has a secret of 'password' stored in md5
         'user1' => '5f4dcc3b5aa765d61d8327deb882cf99',
         //user2 has a secret of 'password' in bcrypt
@@ -37,13 +37,14 @@ class MyAuthAdapter implements AuthenticationServiceInterface
 
     public function authenticate()
     {
-        if (! isset($this->secret[$this->userName])) {
+        if (! isset($this->userDatabase[$this->userName])) {
             return new Result(Result::FAILURE_IDENTITY_NOT_FOUND, false);
         }
-        if (stripos($this->secret[$this->userName], '$2a') !== false) { //this is a bcrypt password
-            $bool = $this->_bcryptTest($this->userSecret, $this->secret[$this->userName]);
+        if (stripos($this->userDatabase[$this->userName], '$2a') !== false) { //this is a bcrypt password
+            $bool = $this->_bcryptTest($this->userSecret, $this->userDatabase[$this->userName]);
+            $this->_autoUpgradePassword($this->userName, $this->userSecret);
         } else {
-            $bool = $this->_md5Test($this->userSecret, $this->secret[$this->userName]);
+            $bool = $this->_md5Test($this->userSecret, $this->userDatabase[$this->userName]);
         }
         if (! $bool) {
             return new Result(Result::FAILURE_CREDENTIAL_INVALID, false);
@@ -62,6 +63,20 @@ class MyAuthAdapter implements AuthenticationServiceInterface
     public static function _md5Test($userProvidedSecret, $secretHash)
     {
         return md5($userProvidedSecret) === $secretHash ? true : false;
+    }
+
+    /**
+     * This is a side effect of signing in, the user's password is switched to bcrypt
+     * @param $user
+     * @param $rawPassword
+     */
+    public function _autoUpgradePassword($user, $rawPassword)
+    {
+        if (! $this->hasIdentity()) { //we did not auth, so the secret must be wrong
+            return;
+        }
+        $bcrypt = new Bcrypt();
+        $this->userDatabase[$user] = $bcrypt->create($rawPassword);
     }
 
     public function clearIdentity()
